@@ -1,8 +1,17 @@
+:root {
+    --colNum: 3;
+    --rowNum: 3;
+}
 .gameBoard {
     display: grid;
     grid-gap: 8px;
-    grid-template-columns: auto auto auto;
-    grid-template-rows: 110px 110px 110px;
+    /* grid-template-columns: repeat(3, auto); */
+    grid-template-columns: repeat(var(--colNum), auto);
+    /* grid-template-rows: repeat(3, 92px); */
+    grid-template-rows: repeat(var(--rowNum), 92px);
+    /* grid-template-columns: auto auto auto;
+    grid-template-rows: 92px 92px 92px; */
+    /* grid-template-rows: 110px 110px 110px; */
     /* grid-template-rows: 5fr 2fr auto; */
 }
 
@@ -30,4 +39,12 @@
 
 .announceWinner {
     margin: 20px;
+}
+
+.item {
+    /* display: flex; */
+    border: .9px dotted;
+    padding: 29px;
+    font-weight: bolder;
+    font-size: larger;   
 }
