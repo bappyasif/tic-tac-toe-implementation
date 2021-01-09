@@ -1,0 +1,33 @@
+.gameBoard {
+    display: grid;
+    grid-gap: 8px;
+    grid-template-columns: auto auto auto;
+    grid-template-rows: 110px 110px 110px;
+    /* grid-template-rows: 5fr 2fr auto; */
+}
+
+.grid-item {
+    display: grid;
+    text-align: center;
+    font-size: larger;
+    border: 2px solid;
+    /* align-self: center; */
+    align-content: center;
+    /* align-items: center; */
+}
+
+.gameDisplay {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    background: honeydew;
+}
+
+.scores{
+    display: flex;
+    justify-content: space-around;
+}
+
+.announceWinner {
+    margin: 20px;
+}
