@@ -11,10 +11,20 @@
         <header>Tic Tac Toe Game</header>
         <div class="gameDisplay">
             <div class="scores">
-                <div class="playerOne item">01</div>
-                <div class="playerTwo item">02</div>
-                <div class="playerComputer item">03</div>
+                <div class="p1">
+                    <div class="p1-text">playerOne <span id="p1-marking"></span></div>
+                    <div class="playerOne item">01</div>
+                </div>
+                <div class="p2">
+                    <div class="p2-text">playerTwo <span id="p2-marking"></span></div>
+                    <div class="playerTwo item">02</div>
+                </div>
+                <div class="p1" hidden>
+                    <div class="p1-text">playerComputer <span id="pc-marking"></span></div>
+                    <div class="playerComputer item">03</div>
+                </div>
             </div>
+            <button class="start-game">Start Game</button>
             <div class="announceWinner">winner winner</div>
             <div class="gameBoard">
                 <div class="grid-item" id="cube1" data-cube="1"></div>

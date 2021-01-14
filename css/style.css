@@ -37,6 +37,13 @@
     justify-content: space-around;
 }
 
+.active {
+    border-color: goldenrod;
+    background-color: gainsboro;
+    border-radius: 4px;
+    color: darkturquoise;
+}
+
 .announceWinner {
     margin: 20px;
 }
