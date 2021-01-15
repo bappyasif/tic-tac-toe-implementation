@@ -48,6 +48,11 @@
     margin: 20px;
 }
 
+.announcement {
+    padding: 20px;
+    color: rgb(26, 49, 49);
+}
+
 .item {
     /* display: flex; */
     border: .9px dotted;

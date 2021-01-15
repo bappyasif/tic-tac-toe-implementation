@@ -1,5 +1,4 @@
 let [p1Marker, p2Marker] = gameStarter();
-let startGame = document.querySelector(".start-game");
 let gameTTT = ((p1, p2) => {
     let startGame = document.querySelector(".start-game");
     startGame.addEventListener("click", playAgain);
@@ -12,6 +11,8 @@ let gameTTT = ((p1, p2) => {
     let rowNums = grid.getPropertyValue("--rowNum");
     console.log(numCols, rowNums, typeof numCols);
     p1Div.classList.add("active");
+    let gameCount = 0;
+    let announceWinner = document.querySelector(".announceWinner");
     function settingUpPlayerMarkers() {
         // let p1Marker = prompt("Choose marker Player One");
         // let p2Marker = prompt("Choose marker Player Two");
@@ -43,13 +44,13 @@ let gameTTT = ((p1, p2) => {
     function startLookingForWinner(array, player) {
         let counter = [];
         counter = array.filter(obj => obj.p === player);
-        // console.log(player + " length: ", counter.length);
         if (counter.length > 2) {
             checkBoard(array, player);
         }
+        if(gameCount === 2 && array.length === 9) gameDraw();
+        else if(gameCount < 2 && array.length === 9) declareDraw();
     }
     function checkBoard(array, player) {
-        // console.log(array);
         let playerBoard = array.filter(x => x.p === player);
         let board = [];
         playerBoard.forEach(item => {
@@ -77,54 +78,68 @@ let gameTTT = ((p1, p2) => {
         [1, 5, 9],
         [3, 5, 7]
     ];
+    function declareDraw() {
+        announceWinner.textContent = "Match Drawn!!";
+        setTimeout(() => {
+            announceWinner.textContent = "";
+        }, 2200);
+        resetBoard();
+    }
     let counter = {p1Counter: 0, p2Counter: 0, compCounter: 0};
     function declareSingleRoundWinner(moves, player) {
         console.log("winner",moves);
-        let maxCount = Math.max(...Object.values(counter));
+        // let maxCount = Math.max(...Object.values(counter));
         // console.log("max: ",maxCount);
         let displayScore;
-        if (maxCount < 2) {
+        if (gameCount < 3) {
             if (player === 1) {
                 counter.p1Counter++;
+                gameCount++;
                 displayScore = p1Div;
                 displayScore.textContent = counter.p1Counter;
             } else if (player === 2) {
                 counter.p2Counter++;
+                gameCount++;
                 displayScore = p2Div;
                 displayScore.textContent = counter.p2Counter;
             } else {
                 counter.compCounter++;
+                gameCount++;
                 displayScore = compDiv;
                 displayScore.textContent = counter.compCounter;
             }
         }
-        if (maxCount === 2) { 
-            gameWinner(player); 
+        if (gameCount === 3) { 
+            gameWinner(player);
             counter.p1Counter = 0; 
             counter.p2Counter = 0; 
-            // resetBoard();
         }
+        roundWinner(player);
         resetBoard();
+    }
+    function roundWinner(player) {
+        announceWinner.innerHTML = `<strong>Round Won By Player: ${player}</strong>`
+        setTimeout(() => {
+            announceWinner.innerHTML = "";
+        },2200);
+    }
+    function gameDraw() {
+        announceWinner.innerHTML = `<strong>Game's Drawn</strong>`;
+        resetGame();
     }
     function gameWinner(player) {
         console.log("Game Winner!! Player: ", player);
         winningPlayer(player);
     }
     function winningPlayer(player) {
-        let gameWinner = document.querySelector(".announceWinner");
-        gameWinner.innerHTML = `<pre> Oh Yeah!! ${"\n"} player: ${player === 1 ? "1" : player === 2 ? "2" : "Computer"} Wins!! Race To: ${player === 1 ? counter.p1Counter : player === 2 ? counter.p2Counter : counter.compCounter} </pre>`;
-        // console.log("..");
-        // gameWinner.innerHTML = "<pre>" + "Oh Yeah!!" + "\n" + "player: " 
-        // + player === 1 ? 1 : player === 2 ? 2 : "Computer"
-        // + " Wins!! Race To: " 
-        // + player === 1 ? counter.p1Counter : player === 2 ? counter.p2Counter : counter.compCounter 
-        // + "</pre>";
-        resetGame(gameWinner);
+        announceWinner.innerHTML = `<pre> Oh Yeah!! ${"\n"} player: ${player === 1 ? "1" : player === 2 ? "2" : "Computer"} Wins!! Race To: ${player === 1 ? counter.p1Counter : player === 2 ? counter.p2Counter : counter.compCounter} </pre>`;
+        resetGame();
     }
-    function resetGame(divEl) {
+    function resetGame() {
+        startGame.textContent = "Start Again";
         setTimeout(() => {
-            divEl.innerHTML = "Play Game";
-            startGame.textContent = "Start Again";
+            announceWinner.innerHTML = "Play Game";
+            // startGame.textContent = "Start Again";
             document.querySelectorAll(".item").forEach(item => item.textContent = "00");
         }, 2200);
     }
@@ -534,4 +549,279 @@ function declareSingleRoundWinner(moves, player) {
         // + "</pre>";
         resetGame(gameWinner);
     }
+
+let [p1Marker, p2Marker] = gameStarter();
+// let startGame = document.querySelector(".start-game");
+let gameTTT = ((p1, p2) => {
+    let startGame = document.querySelector(".start-game");
+    startGame.addEventListener("click", playAgain);
+    let p1Div = document.querySelector(".playerOne");
+    let p2Div = document.querySelector(".playerTwo");
+    let compDiv = document.querySelector(".playerComputer");
+    let gameBoard = [];
+    let grid = window.getComputedStyle(document.querySelector(".gameBoard"));
+    let numCols = grid.getPropertyValue("--colNum");
+    let rowNums = grid.getPropertyValue("--rowNum");
+    console.log(numCols, rowNums, typeof numCols);
+    p1Div.classList.add("active");
+    let gameCount = 0;
+    let announceWinner = document.querySelector(".announceWinner");
+    function settingUpPlayerMarkers() {
+        // let p1Marker = prompt("Choose marker Player One");
+        // let p2Marker = prompt("Choose marker Player Two");
+        return [p1Marker = p1, p2Marker = p2];
+    }
+    function showBoard() {
+        gameBoard.forEach(item => {
+            placeMoves(item.m, item.c, item.p);
+        });
+    }
+    function placeMoves(marker, cube, player) {
+        console.log(marker, cube);
+        let cubeDisplay = document.querySelector(`#${cube}`);
+        cubeDisplay.innerHTML = "<pre>" + marker + "\n" + "player:" + player + "</pre>";
+    }
+    function displayController(marker, cube, playerNum, cubeNum) {
+        let [m1, m2] = [...settingUpPlayerMarkers()];
+        if (playerNum === 1) {
+            marker = m1;
+        } else if (playerNum === 2) {
+            marker = m2;
+        }
+        if (marker && cube) {
+            gameBoard.push({ m: marker, c: cube, p: playerNum, n: cubeNum });
+        }
+        showBoard();
+        startLookingForWinner(gameBoard, playerNum);
+    }
+    function startLookingForWinner(array, player) {
+        let counter = [];
+        counter = array.filter(obj => obj.p === player);
+        // console.log(player + " length: ", counter.length);
+        if (counter.length > 2) {
+            checkBoard(array, player);
+        }
+        // console.log(array.length,counter.length);
+        if(gameCount === 2 && array.length === 9) gameDraw();
+        else if(gameCount < 2 && array.length === 9) declareDraw();
+        // if(array.length === 9 || counter.length === 9) declareDraw();
+    }
+    function checkBoard(array, player) {
+        // console.log(array);
+        let playerBoard = array.filter(x => x.p === player);
+        let board = [];
+        playerBoard.forEach(item => {
+            board.push(+item["n"]);
+        });
+        let matches = [].concat(winningRows, winningCols, winingDiagonals);
+        console.log(matches);
+        // board.every(cell => {
+        //     if(matches.includes(cell)) roundWinner(board);
+        // });
+        let winningMove = matches.find(moves => moves.every(cell => board.includes(cell)));
+        if (winningMove) declareSingleRoundWinner(winningMove, player);
+        // if(gameBoard.length === 9) declareDraw();
+    }
+    let winningRows = [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9]
+    ];
+    let winningCols = [
+        [1, 4, 7],
+        [2, 5, 8],
+        [3, 6, 9]
+    ];
+    let winingDiagonals = [
+        [1, 5, 9],
+        [3, 5, 7]
+    ];
+    function declareDraw() {
+        announceWinner.textContent = "Match Drawn!!";
+        setTimeout(() => {
+            announceWinner.textContent = "";
+        }, 2200);
+        resetBoard();
+        // document.querySelector(".announceWinner").textContent = "Match Drawn!!";
+        // setTimeout(() => {
+        //     document.querySelector(".announceWinner").textContent = "";
+        // }, 2200);
+        // resetBoard();
+    }
+    let counter = {p1Counter: 0, p2Counter: 0, compCounter: 0};
+    function declareSingleRoundWinner(moves, player) {
+        console.log("winner",moves);
+        // let maxCount = Math.max(...Object.values(counter));
+        // console.log("max: ",maxCount);
+        let displayScore;
+        // let gameCount = 0;
+        if (gameCount < 3) {
+            if (player === 1) {
+                counter.p1Counter++;
+                gameCount++;
+                displayScore = p1Div;
+                displayScore.textContent = counter.p1Counter;
+            } else if (player === 2) {
+                counter.p2Counter++;
+                gameCount++;
+                displayScore = p2Div;
+                displayScore.textContent = counter.p2Counter;
+            } else {
+                counter.compCounter++;
+                gameCount++;
+                displayScore = compDiv;
+                displayScore.textContent = counter.compCounter;
+            }
+        }
+        if (gameCount === 3) { 
+            gameWinner(player);
+            // if(counter.p1Counter === counter.p2Counter) {
+            //     gameDraw();
+            // }
+            counter.p1Counter = 0; 
+            counter.p2Counter = 0; 
+            // gameWinner(player); 
+            // counter.p1Counter = 0; 
+            // counter.p2Counter = 0; 
+            // resetBoard();
+        }
+        // if (maxCount < 2) {
+        //     if (player === 1) {
+        //         counter.p1Counter++;
+        //         gameCount++;
+        //         displayScore = p1Div;
+        //         displayScore.textContent = counter.p1Counter;
+        //     } else if (player === 2) {
+        //         counter.p2Counter++;
+        //         gameCount++;
+        //         displayScore = p2Div;
+        //         displayScore.textContent = counter.p2Counter;
+        //     } else {
+        //         counter.compCounter++;
+        //         gameCount++;
+        //         displayScore = compDiv;
+        //         displayScore.textContent = counter.compCounter;
+        //     }
+        // }
+        // if (maxCount === 2) { 
+        //     gameWinner(player);
+        //     // if(counter.p1Counter === 1 && counter.p2Counter === 2) {
+        //     //     gameDraw();
+        //     // }
+        //     counter.p1Counter = 0; 
+        //     counter.p2Counter = 0; 
+        //     // gameWinner(player); 
+        //     // counter.p1Counter = 0; 
+        //     // counter.p2Counter = 0; 
+        //     // resetBoard();
+        // }
+
+        roundWinner(player);
+
+        resetBoard();
+    }
+    function roundWinner(player) {
+        announceWinner.innerHTML = `<strong>Round Won By Player: ${player}</strong>`
+        setTimeout(() => {
+            announceWinner.innerHTML = "";
+        },2200);
+    }
+    function gameDraw() {
+        announceWinner.innerHTML = `<strong>Game's Drawn</strong>`;
+        resetGame();
+        // let announceWinner = document.querySelector(".announceWinner");
+        // announceWinner.innerHTML = `<strong>Game's Drawn</strong>`;
+        // resetGame(announceWinner);
+    }
+    function gameWinner(player) {
+        console.log("Game Winner!! Player: ", player);
+        winningPlayer(player);
+    }
+    function winningPlayer(player) {
+        announceWinner.innerHTML = `<pre> Oh Yeah!! ${"\n"} player: ${player === 1 ? "1" : player === 2 ? "2" : "Computer"} Wins!! Race To: ${player === 1 ? counter.p1Counter : player === 2 ? counter.p2Counter : counter.compCounter} </pre>`;
+        resetGame();
+    }
+    // function winningPlayer(player) {
+    //     let announceWinner = document.querySelector(".announceWinner");
+    //     announceWinner.innerHTML = `<pre> Oh Yeah!! ${"\n"} player: ${player === 1 ? "1" : player === 2 ? "2" : "Computer"} Wins!! Race To: ${player === 1 ? counter.p1Counter : player === 2 ? counter.p2Counter : counter.compCounter} </pre>`;
+    //     // console.log("..");
+    //     // gameWinner.innerHTML = "<pre>" + "Oh Yeah!!" + "\n" + "player: " 
+    //     // + player === 1 ? 1 : player === 2 ? 2 : "Computer"
+    //     // + " Wins!! Race To: " 
+    //     // + player === 1 ? counter.p1Counter : player === 2 ? counter.p2Counter : counter.compCounter 
+    //     // + "</pre>";
+    //     // resetGame(gameWinner);
+    //     resetGame(announceWinner);
+    // }
+    function resetGame() {
+        startGame.textContent = "Start Again";
+        setTimeout(() => {
+            announceWinner.innerHTML = "Play Game";
+            // startGame.textContent = "Start Again";
+            document.querySelectorAll(".item").forEach(item => item.textContent = "00");
+        }, 2200);
+    }
+    // function resetGame(divEl) {
+    //     setTimeout(() => {
+    //         divEl.innerHTML = "Play Game";
+    //         startGame.textContent = "Start Again";
+    //         document.querySelectorAll(".item").forEach(item => item.textContent = "00");
+    //     }, 2200);
+    // }
+    function resetBoard() {
+        setTimeout(() => { boardLayout(); }, 2200);
+    }
+    function boardLayout() {
+        let cubes = document.querySelectorAll(".grid-item");
+        Array.from(cubes).forEach(item => item.textContent = "");
+        // boardArray = [];
+        gameBoard = [];
+    }
+    function playAgain() {
+        // startGame.remove()
+        eachPlayer();
+    }
+    function playerOne() {
+        flag = false;
+        p2Div.classList.add("active");
+        p1Div.classList.remove("active");
+        // let marker = alert("Player One Placed Marking");
+        let marker = null;
+        return [marker, 1];
+    }
+    function playerTwo() {
+        p1Div.classList.add("active");
+        p2Div.classList.remove("active");
+        flag = true;
+        // let marker = alert("Player Two Placed Marking");
+        let marker = null;
+        return [marker, 2];
+    }
+    let flag = true;
+    function eachPlayer() {
+        // startGame.remove();
+        // let startGame = document.querySelector(".start-game");
+        startGame.remove();
+        let cubes = document.querySelectorAll(".grid-item");
+        Array.from(cubes).forEach(cube => {
+            cube.addEventListener("click", () => {
+                let playerMarker, player;
+                if (!cube.textContent) {
+                    flag
+                        ? [playerMarker, player] = [...playerOne()]
+                        : [playerMarker, player] = [...playerTwo()];
+                    console.log(playerMarker, player);
+                    let cubeID = cube.id;
+                    let cubeNumber = cube.getAttribute("data-cube");
+                    console.log(cubeNumber, typeof cubeNumber, cubeID);
+                    displayController(playerMarker, cubeID, player, cubeNumber);
+                } else {
+                    alert("cube's taken choose another");
+                }
+            });
+        });
+    }
+    // settingUpPlayerMarkers();
+    eachPlayer();
+})(p1Marker, p2Marker);
  */
