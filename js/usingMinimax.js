@@ -49,3 +49,102 @@
  * this approach actually lingers this game as late as possible for a perfect game, hence it will choose -6 instead of -8 where win is much immenent, so approach here from our perfect player is to choose blocking move than end game
  * 
  */
+
+ /**
+  * Breaking down of a Non-Coperative Game Theory: by definition, gamme theory is "study of mathematical models of conflicts and cooperation between initelligent rational decision-maker"
+  * where a rational decision maker is someone who is trying to maximize their rewards, Non co-operative game theory implies that players work independently and are not assuming what other player is doing
+  * 
+  * Minimax Algorithm: is one approach to computing best possible outcome by recursively generating all possible final states of a game, which can be represented as a tree, where final states are leaf nodes
+  * while simulataneuosly keeping track of current optimal node and comparing that to all other siblings of that node,this is considered as a zero sum game, when both players are using optimal strategy
+  * 
+  * Psuedocode:
+  * function miniMax(board, player) {
+  *     if(player1) {
+  *         highestReturn = -2;
+  *         for each possible move on board {
+  *             board = makeMove(board)
+  *             reult = miniMax(board, player2)
+  *             highestReturn = max(highestReturn, result);
+  *         }
+  *         return highestReturn
+  *     } else if(player2) {
+  *         lowestReturn = 2
+  *         for each possible move on board {
+  *             board = makeMove(board)
+  *             result = miniMax(board, player1)
+  *             lowestReturn = min(lowestReturn, result)
+  *         }
+  *         return lowestReturn
+  *     }
+  * }
+  * 
+  * Describing it interms of Tic Tac Toe Board Cubes:
+  * we can see in miniMax algorithm two players are called maximizer and minimizer, where maximize tries to get highest score possible while minimizer tries to get lowest score possible
+  * every board state has a value associated with it, when maximizer has upper hand in that board tends to have a positive value, for minimize its tend to have some nagative value, values of board are heuristically assigned
+  * consider this board tree: 
+  *    (_)
+  *  L     R
+  * 3 5   2 9                        
+  * since this is a backtracking based algorithm, it tries all possible moves, then backtracks and makes an inform decision
+  * when Maximizers goes left: it is now minimizers turn and has choice between 3 and 5 and chooses least among those, and that is 3
+  * when Maximizers goes right: it is now minimizers turn and has choice between 2 and 9 and chooses least among them, and that is 2
+  * being maximizer you'd choose maximum from 2 and 3, and that is 3, thus you simplified optimal value for maximizers and go left(3) instead of right(2)
+  * now board looks like this:
+  *     (_)
+  *  L       R
+  *  3       2
+  * 3 5     2 9
+  * 
+  * Lets combine minimax and evaluation function together to write a proper Tic Tac Toe AI that plays a perfect game: this AI will consider all possible moves scenarios and make most optimal move
+  * Find that Best Move: this function will evaluates all possible moves using minimax algorithm and then returns best move a maximizer can make
+  * Psuedocode:
+  * function findBestMove(board){
+  *     bestMove = null
+  *     for each move in board:
+  *         if current move is better than bestMove
+  *             bestMove = current move
+  *     return bestMove;
+  * }
+  * Minimax Algorithm: to check whether or not current move is better than best move we use minimax algorithm, which will consider all possible ways game can go an return best value for that move optimally possible
+  * it's similar to findBestMoves functionality, only difference is instead of returning a move, it'll return a value
+  * Psuedocode:
+  * function minimax(board, depth, isMaximizingPlayer) {
+  *     if current board state is a terminal node/state:
+  *         return value of board
+  *     if isMaximizingPlayer:
+  *         bestVal = -INFINITY
+  *         for each move in board:
+  *             value = minimax(board, depth+1, false)
+  *             bestVal = max(bestVal, value)
+  *         return bestVal
+  *     else:
+  *         bestVal = +INIFINITY
+  *         for each move in board:
+  *             value = minimax(board, depth+1, true)
+  *             bestVal = min(bestVal, value)
+  *         return bestVal
+  * }
+  * checking for gameOver state: to make sure that there are no moves left, it'll check whether a mvoe is possible or not
+  * Psuedocode:
+  * function isMoveLeft(board) {
+  *     for each cell in board:
+  *         if current cell is empty:
+  *             return true;
+  *     return false
+  * }
+  * Making this AI smarter: our AI might choose a move that wil result in a slower victory or faster loss
+  * assume there are 2 possible ways for X to win from a given board state:
+  * Move A: X can win in 2 move
+  * Move B: X can win in 4 move
+  * our evaluation function will return +10 for both of these moves, though Ai might choose B over A, to reduce this problem
+  * we can subtract depth value from evaluated score,  meaning it'll choose least number of moves to gain victory over prolonging it
+  * Move A will have a value of +10 - 2 = 8  
+  * Move B will have a value of +10 - 4 = 6
+  * now our maximizer will choose A(8) over B(6) and thus removing problem of prolonging victory
+  * same logic should be implemented for minimizer as well, where instead of subtractiing depth we will add to node value
+  * Psuecode:
+  * if maximizer has own:
+  *     return win_score - depth
+  * else if minimizer has own:
+  *     return loose_score + depth
+  */
