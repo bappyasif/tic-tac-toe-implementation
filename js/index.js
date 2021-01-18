@@ -178,7 +178,7 @@ let gameTTT = (() => {
         startGame.style.display = "block";
         startGame.textContent = "Start Again";
         gameCount = 0;
-        r = 0;
+        rounds = 0;
         // eachPlayer();
     }
     function playerOne() {

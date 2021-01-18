@@ -81,14 +81,22 @@ let tttg = (() => {
     function evaluateMovesWhenWinning(board) {
         let array = [];
         board.forEach(item => array.push(item));
+        // console.log("current",board);
         array = array.flat();
-        let playerX = array.filter(cell => cell === "x");
+        console.log("current",board);
+        // let playerX = array.filter(cell => cell === player);
+        let playerX = array.filter(cell => cell === computer);
+        // let playerX = array.filter(cell => cell === "oo");
         let playerCords = [];
         for (let i = 0; i < array.length; i++) {
-            if (array[i].indexOf("x") !== -1) playerCords.push(i + 1);
+            // if (array[i].indexOf("x") !== -1) playerCords.push(i + 1);
+            // if (array[i].indexOf(player) !== -1) playerCords.push(i + 1);
+            if (array[i].indexOf(computer) !== -1) playerCords.push(i + 1);
         }
+        // console.log("cords :",playerCords);
         let winningMoves = [].concat(winningRows, winningCols, winingDiagonals);
         let didWin = winningMoves.find(item => item.every(cell => playerCords.includes(cell)));
+        console.log("cords :",playerCords);
         if (didWin && playerX[0] === computer) return 10;
         if (didWin && playerX[0] === player) return -10;
     }
@@ -107,7 +115,189 @@ let tttg = (() => {
         [1, 5, 9],
         [3, 5, 7]
     ];
-    console.log(evaluateMovesWhenWinning([["x", "o", "o"], ["x", "x", "o"], ["x", "", "x"]]));
+    /**
+     * this will have coordinates for best move possible
+     */
+    let bestMove = { row: null, col: null }
+    /**
+     * this function will evaluates exhaustively every possible moves and decides which move is best move
+     * and save those coordinates in bestMove.row and bestMove.col respectively for row and cols
+     * @param {*} board 
+     */
+    function findingBestPossibleMove(board) {
+        let bestValue = -1000;
+        bestMove.row = -1;
+        bestMove.col = -1;
+        board.map((row, rIdx) => {
+            row.map((col, cIdx) => {
+                if (col === "") {
+                    // make move for player
+                    // board[rIdx][cIdx] = player;
+                    board[rIdx][cIdx] = computer;
+                    // compute value for that specefic move
+                    let computedValue = minimaxEvaluation(board, 0, false);
+                    // let computedValue = minimaxEvaluation(board, 0, false);
+                    // let computedValue = minimaxEvaluation(board, cIdx, false);
+                    console.log(computedValue);
+                    // undo that previous move
+                    board[rIdx][cIdx] = "";
+                    // if computed value is greater than that of bestValue then update it's value with computedValue
+                    if (computedValue > bestValue) {
+                        bestMove.row = rIdx;
+                        bestMove.col = cIdx;
+                        bestValue = computedValue;
+                    }
+                }
+            });
+        });
+        console.log("Best Value :" + bestValue);
+        return [bestMove.row, bestMove.col];
+    }
+    /**
+     * this function is implementation for minimax algorithm, where it looks for every possible moves available within a given board
+     * and returns a score of 10, -10, 0 respectively for maximizer, minnimizer, draw
+     * @param {*} board 
+     * @param {*} depth 
+     * @param {*} isMaximizer 
+     */
+    function minimaxEvaluation(board, depth, isMaximizer) {
+        // when maximizer's/minimizer's win a value of 10, -10 will be returned respectively and for draw 0 will be returned
+        let score = evaluateMovesWhenWinning(board);
+        if (score === 10) return score;
+        if (score === -10) return score;
+        if (isAnyMovesLeft(board) === false) return 0;
+        // if this maximizer's move
+        if (isMaximizer) {
+            let bestValue = -1000;
+            // traverse all board cells
+            board.map((row, rIdx) => {
+                row.map((col, cIdx) => {
+                    // when an empty cell is found
+                    if (board[rIdx][cIdx] === "") {
+                        // console.log("<>",rIdx, cIdx);
+                        // make move for maximizer
+                        board[rIdx][cIdx] = player;
+                        // calling minimaxEvaluation recursively to choose maximum
+                        bestValue = Math.max(
+                            bestValue,
+                            minimaxEvaluation(board, depth + 1, !isMaximizer)
+                        );
+                        // undo previously made move
+                        board[rIdx][cIdx] = "";
+                    }
+                });
+            });
+            return bestValue;
+        } else {
+            // when it's minimizer's move
+            let bestValue = 1000;
+            // traversing through board cells
+            board.map((row, rIdx) => {
+                row.map((col, cIdx) => {
+                    // when an empty cell is found
+                    if (board[rIdx][cIdx] === "") {
+                        // make move for opponent
+                        board[rIdx][cIdx] = computer;
+                        // calling minimaxEvluation recursively to choose minimum
+                        bestValue = Math.min(
+                            bestValue,
+                            minimaxEvaluation(board, depth + 1, !isMaximizer)
+                        );
+                        // undo previously made move
+                        board[rIdx][cIdx] = "";
+                    }
+                });
+            });
+            return bestValue;
+        }
+    }
+    let flag = true;
+    function humanPlayer() {
+        flag = false;
+        player = "xx";
+        // return player;
+        return [player, 1];
+    }
+    function computerPlayer() {
+        flag = true;
+        opponent = "oo";
+        // return opponent;
+        return [opponent, 2];
+    }
+    function eachPlayer() {
+        let cubes = document.querySelectorAll(".grid-item");
+        Array.from(cubes).forEach(cube => {
+            cube.addEventListener("click", () => {
+                if (!cube.textContent) {
+                    // console.log(cube.id);
+                    let cubeNum = cube.getAttribute("data-cube");
+                    let cubeID = cube.id;
+                    let marking, playerNum;
+                    // console.log(cubeNum, cubeID);
+                    flag ? [marking, playerNum] = [...humanPlayer()] : [marking, playerNum] = [...computerPlayer()];
+                    // console.log(player, opponent, playerNum);
+                    readyBoard(cubeNum,cubeID,playerNum,marking);
+                } else {
+                    alert("this cube taken already");
+                }
+            });
+        });
+    }
+    function readyBoard(num,id,player,marking) {
+        // console.log(num,id,player,marking);
+        gameBoard.push({cubeNum:num,cubeID:id,playerNum:player,playerMarking:marking});
+        displayBoard(player, marking, id);
+        // console.log(convertBoardInto2D(gameBoard,3));
+        // let matrixfiedBoard = convertBoardInto2D(gameBoard,3);
+        // let bestMove = findingBestPossibleMove(matrixfiedBoard);
+        let plainBoard = [];
+        document.querySelectorAll(".grid-item").forEach(grid => {
+            // if(!grid.textContent) plainBoard.push("");
+            if(!grid.textContent) plainBoard.push(0);
+            else plainBoard.push(marking);
+        });
+        // let matrixifiedBoard = convertBoardInto2D(plainBoard,3);
+        // let matrixifiedBoard = convertBoardInto2D(plainBoard,3);
+        let matrixifiedBoard = [];
+        // for(let i = 0; i < plainBoard.length; i+=3) matrixifiedBoard.push(plainBoard.slice(i,i+3));
+        matrixifiedBoard = plainBoard.slice(0,3);
+        console.log("matrix:"+matrixifiedBoard, plainBoard, plainBoard.slice(0,3));
+        // let bestMove = findingBestPossibleMove(matrixifiedBoard);
+        // console.log(bestMove);
+        // displayBoard(player, marking, id);
+    }
+    function displayBoard(player, marking, cubeID) {
+        let cubeDiv = document.querySelector(`#${cubeID}`);
+        // cubeDiv.innerHTML = `<pre>Player:${player === 1 ? "Human" : "Computer"} ${"\n"} Marking: ${player === 1 ? marking : marking} </pre>`;
+        cubeDiv.innerHTML = `<pre>${player === 1 ? marking : marking} </pre>`;
+    }
+    
+    function convertBoardInto2D(board,size) {
+        let temp = [];
+        let i = 0, n = board.length;
+        while(i < n) {
+            temp.push(board.slice(i,i+=size));
+        }
+        console.log("??"+temp);
+        return temp;
+        
+        // let tmp = [];
+        // // let tmp = board;
+        // for(let i = 0; i < board.length; i+=size) {
+        //     // if(!board[i].playerMarking) {board[i]}
+        //     tmp.push(board.slice(i, i+size));
+        //     // tmp[i] = board.slice(0,size);
+        // }
+        // console.log(tmp);
+        // return tmp;
+
+        // let temp = (board,size) => board.reduce((acc, e, i) => 
+        // (i%size ? acc[acc.length -1].push(e) : acc.push([e]), acc), []);
+        // return temp;
+    }
+    eachPlayer();
+    // console.log(findingBestPossibleMove([["x", "o", "o"], ["", "x", "o"], ["x", "x", "o"]]));
+    // console.log(evaluateMovesWhenWinning([["x", "o", "o"], ["x", "x", "o"], ["x", "", "x"]]));
     // evaluateMovesWhenWinning([["x", "o", "o"], ["x", "x", "o"], ["x", "", "x"]]);
     // let tttg = [["x", "0", "o"], ["x", "x", "o"], ["", "x", "x"]];
     // let value = isAnyMovesLeft(tttg);
@@ -166,6 +356,95 @@ let tttg = (() => {
         [1, 5, 9],
         [3, 5, 7]
     ];
+    /**
+     * this will have coordinates for best move possible
+
+    let bestMove = { row: null, col: null }
+    /**
+     * this function will evaluates exhaustively every possible moves and decides which move is best move
+     * and save those coordinates in bestMove.row and bestMove.col respectively for row and cols
+
+    function findingBestPossibleMove(board) {
+        let bestValue = -1000;
+        bestMove.row = -1;
+        bestMove.col = -1;
+        board.map((row, rIdx) => {
+            row.map((col, cIdx) => {
+                if (col === "") {
+                    // make move for player
+                    board[rIdx][cIdx] = player;
+                    // compute value for that specefic move
+                    let computedValue = minimaxEvaluation(board, 0, false)
+                    // undo that previous move
+                    board[rIdx][cIdx] = "";
+                    // if computed value is greater than that of bestValue then update it's value with computedValue
+                    if (computedValue > bestValue) {
+                        bestMove.row = rIdx;
+                        bestMove.col = cIdx;
+                        bestValue = computedValue;
+                    }
+                }
+            });
+        });
+        console.log("Best Value :" + bestValue);
+        return [bestMove.row, bestMove.col];
+    }
+    /**
+     * this function is implementation for minimax algorithm, where it looks for every possible moves available within a given board
+     * and returns a score of 10, -10, 0 respectively for maximizer, minnimizer, draw
+
+    function minimaxEvaluation(board, depth, isMaximizer) {
+        // when maximizer's/minimizer's win a value of 10, -10 will be returned respectively and for draw 0 will be returned
+        let score = evaluateMovesWhenWinning(board);
+        if (score === 10) return score;
+        if (score === -10) return score;
+        if (isAnyMovesLeft(board) === false) return 0;
+        // if this maximizer's move
+        if (isMaximizer) {
+            let bestValue = -1000;
+            // traverse all board cells
+            board.map((row, rIdx) => {
+                row.map((col, cIdx) => {
+                    // when an empty cell is found
+                    if (board[row][col] === "") {
+                        // console.log("<>",rIdx, cIdx);
+                        // make move for maximizer
+                        board[row][col] = player;
+                        // calling minimaxEvaluation recursively to choose maximum
+                        bestValue = Math.max(
+                            bestValue,
+                            minimaxEvaluation(board, depth+1, !isMaximizer)
+                        );
+                        // undo previously made move
+                        board[row][col] = "";
+                    }
+                });
+            });
+            return bestValue;
+        } else {
+            // when it's minimizer's move
+            let bestValue = 1000;
+            // traversing through board cells
+            board.map((row,rIdx) => {
+                row.map((col,cIdx) => {
+                    // when an empty cell is found
+                    if(board[row][col] === "") {
+                        // make move for opponent
+                        board[row][col] = opponent;
+                        // calling minimaxEvluation recursively to choose minimum
+                        bestValue = Math.min(
+                            bestValue,
+                            minimaxEvaluation(board, depth+1, !isMaximizer)
+                        );
+                        // undo previously made move
+                        board[row][col] = "";
+                    }
+                });
+            });
+            return bestValue;
+        }
+    }
+    console.log(findingBestPossibleMove([["x", "o", "o"], ["", "x", "o"], ["x", "x", "o"]]));
     console.log(evaluateMovesWhenWinning([["x", "o", "o"], ["x", "x", "o"], ["x", "", "x"]]));
     // evaluateMovesWhenWinning([["x", "o", "o"], ["x", "x", "o"], ["x", "", "x"]]);
     // let tttg = [["x", "0", "o"], ["x", "x", "o"], ["", "x", "x"]];
