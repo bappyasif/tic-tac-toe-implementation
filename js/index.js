@@ -17,6 +17,7 @@ let gameTTT = (() => {
     let announceWinner = document.querySelector(".announceWinner");
     let cubes = document.querySelectorAll(".grid-item");
     function gameStarter() {
+        newFlag = false;
         let p1Marker = prompt("Choose marker Player One", "X");
         let p2Marker = prompt("Choose marker Player Two", "O");
         let p1Span = document.querySelector("#p1-marking");
@@ -55,6 +56,7 @@ let gameTTT = (() => {
         if (marker && cube) {
             gameBoard.push({ m: marker, c: cube, p: playerNum, n: cubeNum });
         }
+        // Array.from(cubes).forEach(cube=>cube.removeEventListener("click", ()=>console.log("events removed")));
         showBoard();
         startLookingForWinner(gameBoard, playerNum);
     }
@@ -64,8 +66,8 @@ let gameTTT = (() => {
         if (counter.length > 2) {
             checkBoard(array, player);
         }
-        if (gameCount === 2 && array.length === 9) gameDraw();
-        else if (gameCount < 2 && array.length === 9) declareDraw();
+        // if (gameCount === 2 && array.length === 9) gameDraw();
+        // else if (gameCount < 2 && array.length === 9) declareDraw();
     }
     function checkBoard(array, player) {
         let playerBoard = array.filter(x => x.p === player);
@@ -80,6 +82,12 @@ let gameTTT = (() => {
         // });
         let winningMove = matches.find(moves => moves.every(cell => board.includes(cell)));
         if (winningMove) declareSingleRoundWinner(winningMove, player);
+        if (gameCount === rounds && array.length === 9) gameDraw();
+        else if (gameCount < rounds && array.length === 9) declareDraw();
+        else if (gameCount < rounds && array.length === 9 && winningMove) gameWinner(player);
+        // if (gameCount === 2 && array.length === 9) gameDraw();
+        // else if (gameCount < 2 && array.length === 9) declareDraw();
+        // else if (gameCount < 2 && array.length === 9 && winningMove) gameWinner(player);
     }
     let winningRows = [
         [1, 2, 3],
@@ -156,30 +164,52 @@ let gameTTT = (() => {
         // playAgain();
     }
     function resetGame() {
+        flag = true;
+        newFlag =  true;
+        Array.from(cubes).forEach(cube => cube.removeEventListener("mouseup", () => console.log("events removed")));
         setTimeout(() => {
             // announceWinner.innerHTML = "Play Game";
             // startGame.textContent = "Start Again";
             document.querySelectorAll(".item").forEach(item => item.textContent = "00");
             playAgain();
-            window.location.reload();
+            // window.location.reload();
+            Array.from(cubes).forEach(cube => cube.removeEventListener("click", () => console.log("events removed")));
+            // Array.from(cubes).forEach(cube=>cube.removeEventListener("mouseup", ()=>console.log("events removed")));
         }, 2200);
         // playAgain();
     }
     function resetBoard() {
         setTimeout(() => { boardLayout(); }, 1100);
         // boardLayout();
+        Array.from(cubes).forEach(cube => cube.removeEventListener("click", () => console.log("events removed")));
     }
     function boardLayout() {
         Array.from(cubes).forEach(item => item.innerHTML = "");
         gameBoard = [];
+        Array.from(cubes).forEach(cube => cube.removeEventListener("click", () => console.log("events removed")));
     }
     function playAgain() {
+        // newFlag = true;
+        // document.querySelector(".gameBoard").childNodes.forEach(item => item.removeEventListener("click", () => true))
+        let board = document.querySelector(".gameBoard");
+        let boardCubes = board.childNodes;
+        // console.log(boardCubes);
+        // boardCubes.forEach(cube=>cube.remove());
+        // console.log(boardCubes);
+        // board.remove();
         boardLayout();
-        startGame.style.display = "block";
-        startGame.textContent = "Start Again";
+        // startGame.style.display = "block";
+        // startGame.textContent = "Start Again";
         gameCount = 0;
         rounds = 0;
+        // announceWinner.appendChild(board);
+        // boardCubes.forEach(cube=>board.appendChild(cube));
+        // announceWinner.appendChild(board);
+        // board.appendChild(boardCubes);
+        // flag = true;
+        // document.querySelector(".gameBoard").childNodes.forEach(item=>item.removeEventListener("click", ()=>true))
         // eachPlayer();
+
     }
     function playerOne() {
         flag = false;
@@ -198,19 +228,33 @@ let gameTTT = (() => {
         return [marker, 2];
     }
     let flag = true;
+    let newFlag = true;
+    // if (gameCount === 0 && newFlag || rounds === 0 && newFlag) {
+    //     Array.from(cubes).forEach(item => item.textContent = "");
+    //     [p1, p2, r] = [...gameStarter()];
+    //     // rounds = r;
+    //     // startGame.remove();
+    //     startGame.addEventListener("click", eachPlayer);
+    //     startGame.style.display = "none";
+    //     Array.from(cubes).forEach(cube=>cube.removeEventListener("click", ()=>console.log("events removed")));
+    // }
     function eachPlayer() {
         // startGame.remove();
         // let startGame = document.querySelector(".start-game");
-        if (gameCount === 0 || rounds === 0) {
+        if (gameCount === 0 && newFlag || rounds === 0 && newFlag) {
             Array.from(cubes).forEach(item => item.textContent = "");
             [p1, p2, r] = [...gameStarter()];
             // rounds = r;
             // startGame.remove();
             startGame.style.display = "none";
+            // Array.from(cubes).forEach(cube => cube.removeEventListener("click", () => console.log("events removed")));
+            Array.from(cubes).forEach(cube => cube.removeEventListener("mouseup", () => console.log("events removed")));
         }
+        // if(newFlag)[p1, p2, r] = [...gameStarter()];
+        // Array.from(cubes).forEach(cube => cube.removeEventListener("click", () => console.log("events removed")));
         Array.from(cubes).forEach(cube => {
             // console.log("<>",cube, cube.value, "game: "+gameCount);
-            cube.addEventListener("click", () => {
+            cube.addEventListener("mouseup", () => {
                 let playerMarker, player;
                 if (!cube.textContent) {
                     flag
@@ -221,6 +265,7 @@ let gameTTT = (() => {
                     let cubeNumber = cube.getAttribute("data-cube");
                     console.log(cubeNumber, typeof cubeNumber, cubeID);
                     displayController(playerMarker, cubeID, player, cubeNumber);
+                    cube.removeEventListener("click", () => console.log("events removed"));
                 } else {
                     alert("cube's taken choose another");
                 }
