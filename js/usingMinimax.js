@@ -68,8 +68,12 @@ let tttg = (() => {
     let computer = "x";
     let cubes = document.querySelectorAll(".grid-item");
     let annoneWinner = document.querySelector(".announceWinner");
-    let startGame = document.querySelector(".start-game");
+    // let startGame = document.querySelector(".start-game");
+    let boardView = [];
+    // boardView = Array.from(Array(9).values(" "));
+    // boardView = Array.from(cubes.values(""));
     let flag = true;
+    let available = [];
     let boardSnapshot = [];
     let winingMoves = [
         [1, 2, 3],
@@ -81,61 +85,60 @@ let tttg = (() => {
         [1, 5, 9],
         [3, 5, 7]
     ];
-    function checkWinner() {
-        let filterPlayer = gameBoard.filter(item => item.marking === player);
-        let filterComputer = gameBoard.filter(item => item.marking === computer);
-        // console.log(filterPlayer, filterComputer);
-        let playerBoard = [];
-        let computerBoard = [];
-        filterPlayer.forEach(item => playerBoard.push(+item.cubeNum));
-        filterComputer.forEach(item => computerBoard.push(+item.cubeNum));
-        console.log(playerBoard, computerBoard);
-        // let playerWin = winingMoves.find(moves => moves.every(cell => playerBoard.includes(cell)));
-        // let computerWin = winingMoves.find(moves => moves.every(cell => computerBoard.includes(cell)));
-        let playerWin = winingMoves.find(combos => combos.every(cell => playerBoard.includes(cell)));
-        let computerWin = winingMoves.find(moves => moves.every(cell => computerBoard.includes(cell)));
-        // console.log(playerWin, computerWin, winingMoves);
-        if(playerWin) alert("You win!!");
-        if(computerWin) alert ("you lose!!");
-    }
-    function displayMarkingOnBoard(cubeID, marking) {
-        let divEl = document.querySelector(`#${cubeID}`);
-        divEl.innerHTML = `<strong>${marking}<strong>`;
-    }
-    function humanPlayer(cube) {
-        flag = false;
-        // console.log("human", cube.target);
-        let cubeID = cube.target.id;
-        let cubeNum = cube.target.getAttribute("data-cube");
-        displayMarkingOnBoard(cubeID, player)
-        gameBoard.push({cube:cubeID, marking:player, cubeNum: cubeNum});
-    }
-    function computerPlayer(cube) {
-        flag = true;
-        // console.log("computer", cube.target);
-        let cubeID = cube.target.id;
-        let cubeNum = cube.target.getAttribute("data-cube");
-        displayMarkingOnBoard(cubeID, computer);
-        gameBoard.push({cube:cubeID, marking:computer, cubeNum: cubeNum});
-    }
-    function telematrixBoard() {
-        Array.from(cubes).forEach(cube => boardSnapshot.push(cube.textContent));
-        // console.log(boardSnapshot);
-    }
-    function flowControl() {
-        Array.from(cubes).forEach(cube => {
-            cube.addEventListener("mouseup", displayMarkingForWhom);
-        });
-    }
-    function displayMarkingForWhom(cube) {
-        // console.log(cube.target);
-        if (!cube.target.textContent) {
-            flag === true ? humanPlayer(cube) : computerPlayer(cube);
-        } else {
-            alert("it's taken");
+    startGame();
+    function startGame() {
+        // boardView = Array.from(Array(9).values(" "));
+        boardView = Array.from(Array(9).keys());
+        for(let i=0;i<cubes.length;i++) {
+            cubes[i].innerHTML = "";
+            cubes[i].addEventListener("click", turnController, false);
         }
-        // if(boardSnapshot.length > 4) checkWinner();
-        if(gameBoard.length > 4) checkWinner();
     }
-    flowControl();
+    function turnController(cube) {
+        let cubeData = +cube.target.getAttribute("data-cube");
+        // console.log(cubeData);
+        if(typeof cubeData === "number") {
+            eachTurn(cube, player);
+            if(!checkTie()) computerTurn(testSpot(), computer);
+            // if(!checkTie()) eachTurn(testSpot(), computer);
+            // if(!checkTie()) eachTurn(cube.target.id, computer);
+        }
+    }
+    function eachTurn(cube, whichPlayer) {
+        // console.log(cube);
+        let cubeID = cube.target.id;
+        let getID = (+cubeID.replace(/[a-z]+/g, "")) - 1;
+        // let getID = +cubeID.replace(/[a-z]+/g, "");
+        // console.log(cubeID, getID);
+        // boardView[cubeID] = whichPlayer;
+        boardView[getID] = whichPlayer;
+        document.querySelector(`#${cubeID}`).innerHTML = whichPlayer;
+    }
+    function computerTurn(cubeID, marking) {
+        let getID = (+cubeID.replace(/[a-z]+/g, "")) - 1;
+        boardView[getID] = marking;
+        document.querySelector(`#${cubeID}`).innerHTML = marking;
+    }
+    function emptyCubes() {
+        // // let filtered = boardView.filter(cube => typeof cube === "number");
+        // console.log(filtered);
+        let filtered = Array.from(cubes).filter(cube => !cube.textContent);
+        // console.log(filtered);
+        return filtered;
+    }
+    function testSpot() {
+        // let rand = Math.floor(Math.random() * emptyCubes().length)
+        // console.log(emptyCubes()[0], emptyCubes()[0].id);
+        // return emptyCubes()[0];
+        return emptyCubes()[0].id;
+    }
+    function checkTie() {
+        if(emptyCubes().length === 0) {
+            for(let i = 0; i < cubes.length; i++) {
+                cubes[i].removeEventListener("click", turnController, false);
+            }
+            return true;
+        }
+        return false;
+    }
 })();
