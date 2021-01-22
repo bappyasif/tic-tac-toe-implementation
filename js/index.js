@@ -188,16 +188,20 @@ let gameTTT = (() => {
         gameBoard = [];
         Array.from(cubes).forEach(cube => cube.removeEventListener("click", () => console.log("events removed")));
     }
+    function replayGame() {
+        eachPlayer();
+    }
     function playAgain() {
+        replayGame();
         // newFlag = true;
         // document.querySelector(".gameBoard").childNodes.forEach(item => item.removeEventListener("click", () => true))
-        let board = document.querySelector(".gameBoard");
-        let boardCubes = board.childNodes;
+        // let board = document.querySelector(".gameBoard");
+        // let boardCubes = board.childNodes;
         // console.log(boardCubes);
         // boardCubes.forEach(cube=>cube.remove());
         // console.log(boardCubes);
         // board.remove();
-        boardLayout();
+        // boardLayout();
         // startGame.style.display = "block";
         // startGame.textContent = "Start Again";
         gameCount = 0;
