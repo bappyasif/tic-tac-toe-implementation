@@ -1,33 +1,110 @@
 let gameBoard = (() => {
     let cubes = document.querySelectorAll(".grid-item");
+    let announceWinner = document.querySelector(".announceWinner");
+    let tttgBoard = Array.from(Array(cubes).keys());
+    let whosTurn = [];
+    let winingMoves = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6]
+    ];
     let emptyCubes = () => {
         return Array.from(cubes).filter(cube => !cube.textContent);
     }
     let emptyBoard = () => {
-        for(let i = 0; i < cubes.length; i++) {
+        // announceWinner.innerHTML = "Game Continues..";
+        for (let i = 0; i < cubes.length; i++) {
             cubes[i].textContent = "";
-            cubes[i].removeEventListener("click", cubeClicked, true);
+            cubes[i].innerHTML = "";
+            // cubes[i].style.backgroundColor = "";
+            document.getElementById(i).style.backgroundColor = "";
+            cubes[i].removeEventListener("click", cubeClicked, false);
+            // cubes[i].addEventListener("click", eachTurn, false);
         }
     }
     let cubeClicked = () => {
-        for(let i = 0; i < cubes.length; i++) {
+        // announceWinner.innerHTML = "Game Continues..";
+        for (let i = 0; i < cubes.length; i++) {
             cubes[i].addEventListener("click", eachTurn, false);
-            // cubes[i].addEventListener("click", eachTurn);
-            // if(!cubes[i].textContent) cubes[i].addEventListener("click", eachTurn, false);
         }
     }
     // let checkTurn = () => emptyCubes.length % 2 === 0;
     let eachTurn = (evt) => {
+        // let player = playGame.currentPlayer();
+        // playGame.highlightPlayer(player);
         let cubeID = evt.target.id;
-        // let checkTurn = emptyCubes.length % 2 === 0;
-        // if(checkTurn) placeMarking(cubeID)
-        if(!evt.target.textContent) placeMarking(cubeID);
+        if (!evt.target.textContent) placeMarking(cubeID);
+        else alert("cube's taken, choose another!!");
     }
     // let currentPlayer = playGame.currentPlayer();
     function placeMarking(id) {
         let currentPlayer = playGame.currentPlayer();
+        whosTurn.push(currentPlayer);
+        // let player = playGame.currentPlayer();
+        // playGame.highlightPlayer(currentPlayer);
+        playGame.highlightPlayer(whosTurn[whosTurn.length-1]);
         let cubeDiv = document.getElementById(id);
         cubeDiv.innerHTML = currentPlayer.marking;
+        tttgBoard[id] = currentPlayer.marking;
+        let didWin = checkWin(tttgBoard, currentPlayer.marking);
+        let check = emptyCubes().length === 0;
+        if (didWin) declareWinner(didWin);
+        if (didWin && check) declareWinner(didWin);
+        else if (check && !didWin) checkTie();
+    }
+    function checkWin(board, playerMarking) {
+        let moves = board.reduce((arr, el, idx) => el === playerMarking ? arr.concat(idx) : arr, []);
+        // console.log(moves);
+        let didWin = null;
+        for (let [idx, win] of winingMoves.entries()) {
+            if (win.every(cell => moves.includes(cell))) {
+                didWin = { index: idx, marking: playerMarking };
+                moves = [];
+                playGame.gameOutcomes(whosTurn[whosTurn.length - 1]);
+                break;
+            }
+        }
+        whosTurn = [];
+        return didWin;
+    }
+    function checkTie() {
+        if (emptyCubes.length === 0) {
+            for (let i = 0; i < cubes.length; i++) {
+                cubes[i].style.backgroundColor = "green";
+            }
+        }
+        matchGreetings("Game Tied!!");
+        setTimeout(() => {
+            emptyBoard();
+            tttgBoard = [];
+            announceWinner.innerHTML = "";
+        }, 2200);
+        return;
+    }
+    function declareWinner(winObj) {
+        for (let idx of winingMoves[winObj.index]) {
+            document.getElementById(idx).style.backgroundColor =
+                winObj.marking === "O" ? "aqua" : "red";
+        }
+        for (let i = 0; i < cubes.length; i++) {
+            cubes[i].removeEventListener("click", cubeClicked, false);
+        }
+        let msg = winObj.marking === "O" ? "You Win!!" : "You Lose!!";
+        matchGreetings(msg);
+        setTimeout(() => {
+            emptyBoard();
+            tttgBoard = [];
+            announceWinner.innerHTML = "";
+        }, 2200);
+    }
+    function matchGreetings(text) {
+        // let announceWinner = document.querySelector(".announceWinner");
+        announceWinner.innerHTML = `<strong>${text}</strong>`;
     }
     return {
         emptyCubes,
@@ -47,39 +124,88 @@ let player = (playerName, playerMark, playerNumber) => {
     function placeMarking(marking) {
         // gameBoard.cubeClicked(marking);
         gameBoard.cubeClicked(marking);
+        // playGame.highlightPlayer(playGame.currentPlayer());
         // gameBoard.eachTurn;
     }
     function checkMarking() {
         // return number === "humanPlayer" ? "X" : "O";
-        return name === "humanPlayer" ? "X" : "O";
+        return name === "humanPlayer" ? "O" : "X";
     }
     let roundVictory = () => score++;
     let getScore = () => score;
-    console.log(marking, name);
+    // console.log(marking, name);
+    // playGame.highlightPlayer(playGame.currentPlayer());
     return {
-        name, marking, number, 
-        roundVictory, getScore, checkMarking, placeMarking};
+        name, marking, number,
+        roundVictory, getScore, checkMarking, placeMarking
+    };
 }
 
 let playGame = (() => {
-    let player01, player02, playerAi;
+    let player01, player02, playerAi, rounds;
+    let p1Marking = document.getElementById("p1-marking");
+    let p1Score = document.querySelector(".playerOne");
+    let p2Marking = document.getElementById("p2-marking");
+    let p2Score = document.querySelector(".playerTwo");
     let gameStart = () => {
         player01 = player("humanPlayer", "", "PlayerOne");
         playerAi = player("PlayerAI", "", "PlayerComputer");
         gameBoard.cubeClicked(currentPlayer().marking);
-        // gameBoard.eachTurn(currentPlayer().marking);
+        // highlightPlayer(currentPlayer());
+        // document.querySelector(".p2").classList.add("active");
+        showMarkers();
+        // highlightPlayer(currentPlayer());
+        // check = false;
     }
+    // gameStart();
+    // let check = true;
     let currentPlayer = () => {
-        // let check = gameBoard.checkTurn();
         let check = gameBoard.emptyCubes().length % 2 === 0;
+        console.log(check, gameBoard.emptyCubes().length);
         return check ? player01 : playerAi;
+        // check = false;
+        // let check = true;
+        // console.log(check);
+        // return check ? player01 : playerAi;
+        // let check = gameBoard.emptyCubes().length % 2 === 0;
+        // console.log(check);
+        // return check ? player01 : playerAi;
+    }
+    // gameStart();
+    function highlightPlayer(whos) {
+        let p1 = document.querySelector(".p1");
+        let p2 = document.querySelector(".p2");
+        if (whos.marking === "O") {
+            p1.classList.remove("active");
+            p2.classList.add("active");
+            // p2.classList.remove("active");
+            // p1.classList.add("active");
+        } else if (whos.marking === "X") {
+            p2.classList.remove("active");
+            p1.classList.add("active");
+            // p1.classList.remove("active");
+            // p2.classList.add("active");
+        }
+    }
+    function showMarkers() {
+        console.log(player01,player02, playerAi);
+        p1Marking.textContent = player01.marking;
+        // p2Marking.textContent = player02.marking;
+        p2Marking.textContent = playerAi.marking;
+    }
+    // gameStart();
+    function gameOutcomes(whoOwn) {
+        whoOwn.roundVictory();
+        whoOwn.marking === "O"
+            ? p1Score.textContent = whoOwn.getScore()
+            : p2Score.textContent = whoOwn.getScore()
     }
     gameStart();
-    // for(let i = 0; i < gameBoard)
-    // gameBoard.cubeClicked(currentPlayer().marking);
     return {
         gameStart,
-        currentPlayer
+        currentPlayer,
+        gameOutcomes,
+        highlightPlayer
     }
 })();
 
@@ -110,7 +236,7 @@ let playGame = (() => {
     let eachTurn = (evt) => {
         let cubeID = evt.target.id;
         let checkTurn = emptyCubes.length % 2 === 0
-        
+
         // if(checkTurn) playingTurns(cubeID, humanPlayer)
         // else playingTurns(cubeID, playerAi)
         if(checkTurn) placeMarking(cubeID)
@@ -155,7 +281,7 @@ let player = (playerName, playerMark, playerNumber) => {
     let getScore = () => score;
     console.log(marking, name);
     return {
-        name, marking, number, 
+        name, marking, number,
         roundVictory, getScore, checkMarking, placeMarking};
 }
 
@@ -181,6 +307,202 @@ let playGame = (() => {
     return {
         gameStart,
         currentPlayer
+    }
+})();
+
+
+// Two Players
+let gameBoard = (() => {
+    let cubes = document.querySelectorAll(".grid-item");
+    let announceWinner = document.querySelector(".announceWinner");
+    let tttgBoard = Array.from(Array(cubes).keys());
+    let whosTurn = [];
+    let winingMoves = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6]
+    ];
+    let emptyCubes = () => {
+        return Array.from(cubes).filter(cube => !cube.textContent);
+    }
+    let emptyBoard = () => {
+        // announceWinner.innerHTML = "Game Continues..";
+        for (let i = 0; i < cubes.length; i++) {
+            cubes[i].textContent = "";
+            cubes[i].innerHTML = "";
+            // cubes[i].style.backgroundColor = "";
+            document.getElementById(i).style.backgroundColor = "";
+            cubes[i].removeEventListener("click", cubeClicked, false);
+            // cubes[i].addEventListener("click", eachTurn, false);
+        }
+    }
+    let cubeClicked = () => {
+        // announceWinner.innerHTML = "Game Continues..";
+        for (let i = 0; i < cubes.length; i++) {
+            cubes[i].addEventListener("click", eachTurn, false);
+            // let player = playGame.currentPlayer();
+            // playGame.highlightPlayer(player);
+        }
+    }
+    // let checkTurn = () => emptyCubes.length % 2 === 0;
+    let eachTurn = (evt) => {
+        let player = playGame.currentPlayer();
+        playGame.highlightPlayer(player);
+
+        let cubeID = evt.target.id;
+        if (!evt.target.textContent) placeMarking(cubeID);
+        else alert("cube's taken, choose another!!");
+    }
+    // let currentPlayer = playGame.currentPlayer();
+    function placeMarking(id) {
+        // let whosTurn = [];
+        let currentPlayer = playGame.currentPlayer();
+        whosTurn.push(currentPlayer);
+        let cubeDiv = document.getElementById(id);
+        cubeDiv.innerHTML = currentPlayer.marking;
+        tttgBoard[id] = currentPlayer.marking;
+        let didWin = checkWin(tttgBoard, currentPlayer.marking);
+        // if(didWin) decalreWin(didWin, currentPlayer);
+        let check = emptyCubes().length === 0;
+        if (didWin) declareWinner(didWin);
+        if (didWin && check) declareWinner(didWin);
+        else if (check && !didWin) checkTie();
+    }
+    function checkWin(board, playerMarking) {
+        let moves = board.reduce((arr, el, idx) => el === playerMarking ? arr.concat(idx) : arr, []);
+        // console.log(moves);
+        let didWin = null;
+        for (let [idx, win] of winingMoves.entries()) {
+            if (win.every(cell => moves.includes(cell))) {
+                didWin = { index: idx, marking: playerMarking };
+                moves = [];
+                playGame.gameOutcomes(whosTurn[whosTurn.length - 1]);
+                break;
+            }
+        }
+        whosTurn = [];
+        return didWin;
+    }
+    function checkTie() {
+        if (emptyCubes.length === 0) {
+            for (let i = 0; i < cubes.length; i++) {
+                cubes[i].style.backgroundColor = "green";
+            }
+        }
+        matchGreetings("Game Tied!!");
+        setTimeout(() => {
+            emptyBoard();
+            tttgBoard = [];
+            announceWinner.innerHTML = "";
+        }, 2200);
+        return;
+    }
+    function declareWinner(winObj) {
+        for (let idx of winingMoves[winObj.index]) {
+            document.getElementById(idx).style.backgroundColor =
+                winObj.marking === "O" ? "aqua" : "red";
+        }
+        for (let i = 0; i < cubes.length; i++) {
+            cubes[i].removeEventListener("click", cubeClicked, false);
+        }
+        let msg = winObj.marking === "O" ? "You Win!!" : "You Lose!!";
+        matchGreetings(msg);
+        setTimeout(() => {
+            emptyBoard();
+            tttgBoard = [];
+            announceWinner.innerHTML = "";
+        }, 2200);
+    }
+    function matchGreetings(text) {
+        // let announceWinner = document.querySelector(".announceWinner");
+        announceWinner.innerHTML = `<strong>${text}</strong>`;
+    }
+    return {
+        emptyCubes,
+        emptyBoard,
+        cubeClicked,
+        // checkTurn,
+        eachTurn,
+        placeMarking,
+    }
+})();
+
+let player = (playerName, playerMark, playerNumber) => {
+    let name = playerName;
+    let marking = checkMarking() || playerMark;
+    let number = playerNumber;
+    let score = 0;
+    function placeMarking(marking) {
+        // gameBoard.cubeClicked(marking);
+        gameBoard.cubeClicked(marking);
+        // gameBoard.eachTurn;
+    }
+    function checkMarking() {
+        // return number === "humanPlayer" ? "X" : "O";
+        return name === "humanPlayer" ? "O" : "X";
+    }
+    let roundVictory = () => score++;
+    let getScore = () => score;
+    // console.log(marking, name);
+    return {
+        name, marking, number,
+        roundVictory, getScore, checkMarking, placeMarking
+    };
+}
+
+let playGame = (() => {
+    let player01, player02, playerAi, rounds;
+    let p1Marking = document.getElementById("p1-marking");
+    let p1Score = document.querySelector(".playerOne");
+    let p2Marking = document.getElementById("p2-marking");
+    let p2Score = document.querySelector(".playerTwo");
+    let gameStart = () => {
+        player01 = player("humanPlayer", "", "PlayerOne");
+        playerAi = player("PlayerAI", "", "PlayerComputer");
+        gameBoard.cubeClicked(currentPlayer().marking);
+        // highlightPlayer(currentPlayer());
+        document.querySelector(".p1").classList.add("active");
+    }
+    let currentPlayer = () => {
+        let check = gameBoard.emptyCubes().length % 2 === 0;
+        return check ? player01 : playerAi;
+    }
+    function highlightPlayer(whos) {
+        let p1 = document.querySelector(".p1");
+        let p2 = document.querySelector(".p2");
+        // let whos = currentPlayer();
+        // p1.classList.add("active");
+        if (whos.marking === "O") {
+            // p1.classList.remove("active");
+            // p2.classList.add("active");
+            p2.classList.remove("active");
+            p1.classList.add("active");
+        } else if (whos.marking === "X") {
+            // p2.classList.remove("active");
+            // p1.classList.add("active");
+            p1.classList.remove("active");
+            p2.classList.add("active");
+        }
+    }
+    gameStart();
+    function gameOutcomes(whoOwn) {
+        whoOwn.roundVictory();
+        // p1Score.textContent = whoOwn.getScore();
+        // console.log(whoOwn.getScore());
+        whoOwn.marking === "O"
+            ? p1Score.textContent = whoOwn.getScore()
+            : p2Score.textContent = whoOwn.getScore()
+    }
+    return {
+        gameStart,
+        currentPlayer,
+        gameOutcomes,
+        highlightPlayer
     }
 })();
  */
