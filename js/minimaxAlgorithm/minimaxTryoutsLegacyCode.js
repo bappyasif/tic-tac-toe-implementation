@@ -80,8 +80,8 @@ let tttg = (() => {
      */
     function evaluateMovesWhenWinning(board) {
         let array = [];
-        // board.forEach(item => array.push(item));
-        board.forEach(item => array.push(item[0]));
+        board.forEach(item => array.push(item));
+        // board.forEach(item => array.push(item[0]));
         array = array.flat();
         // console.log("currentBoard:", board, array);
         console.log("flatBoard:",array);
@@ -376,6 +376,15 @@ let tttg = (() => {
     // let value = isAnyMovesLeft(tttg);
     // console.log(value);
 })();
+
+
+// Things to figure out:
+/**
+ Your evaluateMovesWhenWinning function does not work due to multiple issues.
+1. board.forEach(item => array.push(item[0])); you push every first index of each row - and end up with only the first column - thats your basis for testing after
+2. playerX is basically useless as you only get a list of all computer-set cells. That would only tell you how many X/O it set.
+3. playerCords only tests for the computer, not for the player. As playerX cannot be used for determining who it is that won you have no basis on distinguishing the winner
+ */
 
 
 /**
